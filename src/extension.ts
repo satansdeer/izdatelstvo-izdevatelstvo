@@ -2,28 +2,45 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { promisify } from "util";
+import { existsSync } from "fs";
 import { exec } from "child_process";
 const execAsync = promisify(exec);
 
 const updateFolderIds = async (path: string, diff: number) => {
   const pathArray = path.split("/");
   const folderName = pathArray[pathArray.length - 1];
+  const isLesson = folderName.match("lesson_");
   const parentFolder = pathArray.slice(0, -1).join("/");
   const { stdout: parentFolderLs } = await execAsync(`ls -1 ${parentFolder}`);
   const folders = parentFolderLs
     .split("\n")
-    .filter((line) => /([0-9]*\.[0-9]*)-.*/.test(line));
+    .filter((line) =>
+      isLesson
+        ? /lesson_([0-9]*\.[0-9]*)/.test(line)
+        : /([0-9]*\.[0-9]*)-.*/.test(line)
+    );
   const folderIndex = folders.indexOf(folderName);
-  const affectedFolders = folders.slice(folderIndex).reverse();
+
+  const affectedFolders =
+    diff > 0
+      ? folders.slice(folderIndex).reverse()
+      : folders.slice(folderIndex);
+
   for (const affectedFolder of affectedFolders) {
-    const folderId = affectedFolder.match(/.([0-9]*)-/)?.[1];
+    const folderId = isLesson
+      ? affectedFolder.match(/\.([0-9]*)$/)?.[1]
+      : affectedFolder.match(/\.([0-9]*)-?/)?.[1];
     const newFolderId = (Number(folderId) + diff).toLocaleString(undefined, {
       minimumIntegerDigits: 2,
     });
     const newFolderName = affectedFolder.replace(
-      `.${folderId}-`,
-      `.${newFolderId}-`
+      `.${folderId}`,
+      `.${newFolderId}`
     );
+    if (existsSync(`${parentFolder}/${newFolderName}`)) {
+      vscode.window.showErrorMessage(`${newFolderName} already exists`);
+      throw new Error(`${newFolderName} already exists`);
+    }
     await execAsync(
       `mv ${parentFolder}/${affectedFolder} ${parentFolder}/${newFolderName}`
     );
@@ -49,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
       // Display a message box to the user
       vscode.window.showInformationMessage("Incrementing step ids.");
       const { path } = args;
-			await updateFolderIds(path, 1);
+      await updateFolderIds(path, 1);
     }
   );
 
@@ -60,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
       // Display a message box to the user
       vscode.window.showInformationMessage("Decrementing step ids.");
       const { path } = args;
-			await updateFolderIds(path, -1);
+      await updateFolderIds(path, -1);
     }
   );
 
