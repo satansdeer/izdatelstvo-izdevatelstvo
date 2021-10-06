@@ -49,7 +49,7 @@ const updateFolderIds = async (path: string, diff: number) => {
         lessonFolderContents.split("\n")[0]
       }`;
       try {
-        const command = `sed -i '' -e 's/\.${folderId}-/\.${newFolderId}-/g' ${lessonFile}`;
+        const command = `sed -i '' -e 's/\\.${folderId}-/\.${newFolderId}-/g' ${lessonFile}`;
         await execAsync(command);
       } catch (e) {
         console.log(e);
