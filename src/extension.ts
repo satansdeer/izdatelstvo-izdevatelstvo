@@ -41,6 +41,20 @@ const updateFolderIds = async (path: string, diff: number) => {
       vscode.window.showErrorMessage(`${newFolderName} already exists`);
       throw new Error(`${newFolderName} already exists`);
     }
+    if (isLesson) {
+      const { stdout: lessonFolderContents } = await execAsync(
+        `ls -1 ${parentFolder}/${affectedFolder}`
+      );
+      const lessonFile = `${parentFolder}/${affectedFolder}/${
+        lessonFolderContents.split("\n")[0]
+      }`;
+      try {
+        const command = `sed -i '' -e 's/\.${folderId}-/\.${newFolderId}-/g' ${lessonFile}`;
+        await execAsync(command);
+      } catch (e) {
+        console.log(e);
+      }
+    }
     await execAsync(
       `mv ${parentFolder}/${affectedFolder} ${parentFolder}/${newFolderName}`
     );
