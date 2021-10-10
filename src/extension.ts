@@ -1,10 +1,46 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import { languages, Disposable, Hover, MarkdownString } from "vscode";
 import { promisify } from "util";
-import { existsSync } from "fs";
+import { existsSync, readFile } from "fs";
 import { exec } from "child_process";
+import { resolve } from "path";
+import * as cq from "@fullstackio/cq";
 const execAsync = promisify(exec);
+const readFileAsync = promisify(readFile);
+
+let disposables: Disposable[] = [];
+
+const calcEngine = (ext: string) => {
+  switch (ext) {
+    case "tsx":
+      return "typescript";
+    case "ts":
+      return "typescript";
+    case "js":
+      return "babylon";
+    case "jsx":
+      return "babylon";
+    case "json":
+      return "treesitter";
+    default:
+      return "auto";
+  }
+};
+
+const calcCropQuery = (optionsLine: string, numberOfLines: number) => {
+  const cropQueryMatch = optionsLine?.match(/crop-query=(.*)}/)?.[1];
+  if (cropQueryMatch) {
+    return cropQueryMatch;
+  }
+  const cropStartLine = optionsLine?.match(/crop-start-line=([0-9]*)/)?.[1];
+  const cropEndLine = optionsLine?.match(/crop-end-line=([0-9]*)/)?.[1];
+  if (cropStartLine && cropEndLine) {
+    return `${cropStartLine}-${cropEndLine}`;
+  }
+  return `1-${numberOfLines}`;
+};
 
 const updateFolderIds = async (path: string, diff: number) => {
   const pathArray = path.split("/");
@@ -70,6 +106,44 @@ export function activate(context: vscode.ExtensionContext) {
     'Congratulations, your extension "mock-publicering" is now active!'
   );
 
+  languages.registerHoverProvider("markdown", {
+    async provideHover(document, position, token) {
+      const hoveredLine = document.lineAt(position.line).text;
+      let optionsLine, pathLine;
+      if (hoveredLine?.match(/^<</)) {
+        optionsLine = document.lineAt(position.line - 1).text;
+        pathLine = document.lineAt(position.line).text;
+      } else {
+        optionsLine = document.lineAt(position.line).text;
+        pathLine = document.lineAt(position.line + 1).text;
+      }
+      try {
+        const filePath = pathLine?.match(/\((.*)\)/)?.[1] || "";
+        const extension = filePath.split(".").reverse()[0];
+        const fullPath = resolve(document.fileName, "../", filePath);
+        const codeString = String(await readFileAsync(fullPath, "utf-8"));
+        const numberOfLines = codeString.split("\n").length - 1;
+
+        const { stdout: results } = await execAsync(
+          `cq ${calcCropQuery(
+            optionsLine,
+            numberOfLines
+          )} ${fullPath} --engine=${calcEngine(extension)}`
+        );
+        return new Hover(
+          new MarkdownString(`
+\`\`\`tsx
+${results}
+\`\`\`
+			`)
+        );
+      } catch (e) {
+        console.log(process);
+        console.log(e);
+      }
+    },
+  });
+
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
   // The commandId parameter must match the command field in package.json
@@ -100,4 +174,9 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+  if (disposables) {
+    disposables.forEach((item) => item.dispose());
+  }
+  disposables = [];
+}
