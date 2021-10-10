@@ -125,10 +125,10 @@ export function activate(context: vscode.ExtensionContext) {
         const numberOfLines = codeString.split("\n").length - 1;
 
         const { stdout: results } = await execAsync(
-          `cq '${calcCropQuery(
+          `cq "${calcCropQuery(
             optionsLine,
             numberOfLines
-          )}' ${fullPath} --engine=${calcEngine(extension)}`
+          )}" ${fullPath} --engine=${calcEngine(extension)}`
         );
         return new Hover(
           new MarkdownString(`
