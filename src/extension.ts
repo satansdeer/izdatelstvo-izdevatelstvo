@@ -138,8 +138,8 @@ ${results}
 			`)
         );
       } catch (e) {
-        console.log(process);
-        console.log(e);
+        vscode.window.showErrorMessage((e as Error).message);
+        throw e;
       }
     },
   });
