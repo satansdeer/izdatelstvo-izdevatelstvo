@@ -1,9 +1,10 @@
 {
   "name": "mock-publicering",
   "displayName": "mock-publicering",
+	"icon": "images/icon.png",
   "publisher": "satansdeer",
   "description": "",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "engines": {
     "vscode": "^1.60.0"
   },
