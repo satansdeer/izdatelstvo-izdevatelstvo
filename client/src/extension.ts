@@ -1,46 +1,27 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import * as path from "path";
 import { languages, Disposable, Hover, MarkdownString } from "vscode";
-import { promisify } from "util";
 import { existsSync, readFile } from "fs";
-import { exec } from "child_process";
 import { resolve } from "path";
-import * as cq from "@fullstackio/cq";
+import { promisify } from "util";
+import { exec } from "child_process";
 const execAsync = promisify(exec);
 const readFileAsync = promisify(readFile);
+import {
+  LanguageClient,
+  LanguageClientOptions,
+  ServerOptions,
+  TransportKind,
+} from "vscode-languageclient/node";
+import { calcCropQuery } from './calcCropQuery';
+import { calcEngine } from './calcEngine';
+// import { calcCropQuery } from '../../shared';
 
 let disposables: Disposable[] = [];
 
-const calcEngine = (ext: string) => {
-  switch (ext) {
-    case "tsx":
-      return "typescript";
-    case "ts":
-      return "typescript";
-    case "js":
-      return "babylon";
-    case "jsx":
-      return "babylon";
-    case "json":
-      return "treesitter";
-    default:
-      return "auto";
-  }
-};
-
-const calcCropQuery = (optionsLine: string, numberOfLines: number) => {
-  const cropQueryMatch = optionsLine?.match(/crop-query=(.*)}/)?.[1];
-  if (cropQueryMatch) {
-    return cropQueryMatch;
-  }
-  const cropStartLine = optionsLine?.match(/crop-start-line=([0-9]*)/)?.[1];
-  const cropEndLine = optionsLine?.match(/crop-end-line=([0-9]*)/)?.[1];
-  if (cropStartLine && cropEndLine) {
-    return `${cropStartLine}-${cropEndLine}`;
-  }
-  return `1-${numberOfLines}`;
-};
+let client: LanguageClient;
 
 const updateFolderIds = async (path: string, diff: number) => {
   const pathArray = path.split("/");
@@ -150,8 +131,6 @@ ${results}
   const incrementStepIds = vscode.commands.registerCommand(
     "mock-publicering.incrementStepIds",
     async (args) => {
-      // The code you place here will be executed every time your command is executed
-      // Display a message box to the user
       vscode.window.showInformationMessage("Incrementing step ids.");
       const { path } = args;
       await updateFolderIds(path, 1);
@@ -161,14 +140,56 @@ ${results}
   const decrementStepIds = vscode.commands.registerCommand(
     "mock-publicering.decrementStepIds",
     async (args) => {
-      // The code you place here will be executed every time your command is executed
-      // Display a message box to the user
       vscode.window.showInformationMessage("Decrementing step ids.");
       const { path } = args;
       await updateFolderIds(path, -1);
     }
   );
 
+  const verifyDiff = vscode.commands.registerCommand(
+    "mock-publicering.verifyDiff",
+    async (args) => {
+      vscode.window.showInformationMessage("Verifying diff.");
+      const currentDocument =
+        vscode?.window?.activeTextEditor?.document.uri.fsPath;
+      const lessonId = currentDocument?.match(/lesson_([0-9]*\.[0-9]*)\//)?.[1];
+      console.log(lessonId);
+    }
+  );
+
+  const serverModule = context.asAbsolutePath(
+    path.join("server", "out", "server.js")
+  );
+  const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
+
+  const serverOptions: ServerOptions = {
+    run: { module: serverModule, transport: TransportKind.ipc },
+    debug: {
+      module: serverModule,
+      transport: TransportKind.ipc,
+      options: debugOptions,
+    },
+  };
+
+  const clientOptions: LanguageClientOptions = {
+    documentSelector: [{ scheme: "file", language: "markdown" }],
+    synchronize: {
+      fileEvents: vscode.workspace.createFileSystemWatcher("**/**/.md"),
+    },
+  };
+
+  client = new LanguageClient(
+    "languageServerExample",
+    "Language Server Example",
+    serverOptions,
+    clientOptions
+  );
+
+
+  // Start the client. This will also launch the server
+  client.start();
+
+  context.subscriptions.push(verifyDiff);
   context.subscriptions.push(incrementStepIds);
   context.subscriptions.push(decrementStepIds);
 }
@@ -179,4 +200,8 @@ export function deactivate() {
     disposables.forEach((item) => item.dispose());
   }
   disposables = [];
+  if (!client) {
+    return undefined;
+  }
+  return client.stop();
 }
