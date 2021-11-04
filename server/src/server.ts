@@ -23,30 +23,42 @@ import { calcEngine } from "./calcEngine";
 const findIgnoredFiles = (text: string) => {
   const matches = text.match(/\{ignore=.*\}/g);
   const ignoredFiles =
-    matches?.map((match) => {
-      return match.split("=")[1].replace("}", "");
-    }).filter(Boolean) || [];
+    matches
+      ?.map((match) => {
+        return match.split("=")[1].replace("}", "");
+      })
+      .filter(Boolean) || [];
   return ignoredFiles;
 };
 
 const findCq = async (text: string, documentPath: string) => {
   const matches = text.match(/(^|\n)\{.*(\n|\r|\r\n)<<.*\)/g);
+  const brokenDownMatches = matches?.reduce((acc: string[], match: string) => {
+    const cropQueryMatch = match?.match(/crop-query=\((.*)\)}/)?.[1];
+    if (!cropQueryMatch) {
+      return [...acc, match];
+    }
+    const cropQueryByComma = cropQueryMatch?.split(",");
+    const partialMatches = cropQueryByComma?.map((cropQueryPartMatch: string) =>
+      match.replace(cropQueryMatch, cropQueryPartMatch)
+    );
+    return [...acc, ...partialMatches];
+  }, []);
   const cqChunks = await Promise.all(
-    matches?.map(async (codeQueryBlock) => {
+    brokenDownMatches?.map(async (codeQueryBlock) => {
       const filePath = codeQueryBlock?.match(/\]\((.*)\)/)?.[1] || "";
       const fullPath = resolve(documentPath, "../", filePath);
       const codeString = String(await readFileAsync(fullPath, "utf-8"));
       const numberOfLines = codeString.split("\n").length - 1;
       const match = codeQueryBlock.match(/(\{.*\})/) || [];
       const extension = filePath.split(".").reverse()[0];
-      const { stdout: results } = await execAsync(
-        `cq "${calcCropQuery(
-          match[1],
-          numberOfLines
-        )}" ${fullPath} --engine=${calcEngine(extension)} --json`
-      );
-      if (match[1].includes(".AppContainer")) {
-        console.log(match[1]);
+      const command = `cq "${calcCropQuery(
+        match[1],
+        numberOfLines
+      )}" ${fullPath} --engine=${calcEngine(extension)} --json`;
+      const { stdout: results } = await execAsync(command);
+      if (!results) {
+        return undefined;
       }
       const data: any = JSON.parse(results);
       const lineRange = [data.start_line, data.end_line];
@@ -57,7 +69,7 @@ const findCq = async (text: string, documentPath: string) => {
       return { lines, filePath: fullPath };
     }) || []
   );
-  return cqChunks.reduce((acc: any, chunk: any) => {
+  return cqChunks.filter(Boolean).reduce((acc: any, chunk: any) => {
     return {
       ...acc,
       [chunk.filePath]: [...(acc[chunk.filePath] || []), ...chunk.lines],
@@ -150,21 +162,6 @@ connection.onDidChangeConfiguration((change) => {
   // Revalidate all open text documents
   documents.all().forEach(validateTextDocument);
 });
-
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
-  if (!hasConfigurationCapability) {
-    return Promise.resolve(globalSettings);
-  }
-  let result = documentSettings.get(resource);
-  if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: "languageServerExample",
-    });
-    documentSettings.set(resource, result);
-  }
-  return result;
-}
 
 // Only keep settings for open documents
 documents.onDidClose((e) => {

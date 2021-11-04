@@ -11,7 +11,9 @@ export const calcEngine = (ext: string) => {
       return "babylon";
     case "json":
       return "treesitter";
+    case "css":
+      return "treesitter";
     default:
-      return "auto";
+      return "treesitter";
   }
 };
