@@ -2,7 +2,7 @@
   
 <img src='./images/icon.png' width='100'/>
 
-This is a VSCode extension that helps edit books that use the Code Query syntax.
+This is a [VSCode extension](https://marketplace.visualstudio.com/items?itemName=satansdeer.izdatelstvo-izdevatelstvo) that helps edit books that use the Code Query syntax.
 
 ## Features
 
