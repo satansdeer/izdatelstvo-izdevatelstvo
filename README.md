@@ -1,8 +1,16 @@
 # Izdatelstvo Izdevatelstvo
+  
+<img src='./images/icon.png' width='100'/>
 
-This is a helper library for editing Newline books.
+This is a VSCode extension that helps edit books that use the Code Query syntax.
 
 ## Features
+
+### Validate text lessons
+
+### Preview code blocks on hover
+
+### Manipulate step IDs
 
 The extension add two explorer context commands:
 
