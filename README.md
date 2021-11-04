@@ -18,3 +18,7 @@ The extension add two explorer context commands:
 * Decrement steps ids
 
 This makes it easier to add and remove steps.
+
+![lesson-id-manipulation](https://user-images.githubusercontent.com/450319/140412251-180b3839-e547-4ee8-b0cb-327460f66973.gif)
+
+>Here we've incremented all the step IDs starting from step `01.04` by one. This works both for code example folders as well as for chapter sections.
