@@ -1,8 +1,8 @@
 {
-  "name": "mock-publicering",
-  "displayName": "mock-publicering",
+  "name": "izdatelstvo-izdevatelstvo",
+  "displayName": "Izdatelstvo Izdevatelstvo",
   "icon": "images/icon.png",
-  "publisher": "satansdeer",
+  "publisher": "SatansDeer",
   "description": "",
   "version": "0.5.1",
   "engines": {
