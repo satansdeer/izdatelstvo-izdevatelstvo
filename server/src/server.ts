@@ -155,7 +155,7 @@ connection.onDidChangeConfiguration((change) => {
     documentSettings.clear();
   } else {
     globalSettings = <ExampleSettings>(
-      (change.settings.languageServerExample || defaultSettings)
+      (change.settings.izdatelstvoIzdevatelstvoSettings || defaultSettings)
     );
   }
 
@@ -274,7 +274,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
           message: `Missed change: ${currentLesson}${
             file.replace(currentLesson, "#").split("#")[1]
           }`,
-          source: "Mock-Publicering",
+          source: "Izdatelstvo Izdevatelstvo",
         };
         if (hasDiagnosticRelatedInformationCapability) {
           diagnostic.relatedInformation = [];
@@ -302,7 +302,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
           end: textDocument.positionAt(0),
         },
         message: `You've ignored ${file}`,
-        source: "Mock-Publicering",
+        source: "Izdatelstvo Izdevatelstvo",
       });
     });
   } catch (e) {
@@ -315,7 +315,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
       end: textDocument.positionAt(0),
     },
     message: `File checked ${new Date().toLocaleTimeString()}`,
-    source: "Mock-Publicering",
+    source: "Izdatelstvo Izdevatelstvo",
   };
   diagnostics.push(diagnostic);
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });

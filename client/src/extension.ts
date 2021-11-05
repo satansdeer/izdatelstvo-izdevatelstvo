@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log(
-    'Congratulations, your extension "mock-publicering" is now active!'
+    'Congratulations, your extension "izdatelstvo-izdevatelstvo" is now active!'
   );
 
   languages.registerHoverProvider("markdown", {
@@ -129,7 +129,7 @@ ${results}
   // Now provide the implementation of the command with registerCommand
   // The commandId parameter must match the command field in package.json
   const incrementStepIds = vscode.commands.registerCommand(
-    "mock-publicering.incrementStepIds",
+    "izdatelstvo-izdevatelstvo.incrementStepIds",
     async (args) => {
       vscode.window.showInformationMessage("Incrementing step ids.");
       const { path } = args;
@@ -138,7 +138,7 @@ ${results}
   );
 
   const decrementStepIds = vscode.commands.registerCommand(
-    "mock-publicering.decrementStepIds",
+    "izdatelstvo-izdevatelstvo.decrementStepIds",
     async (args) => {
       vscode.window.showInformationMessage("Decrementing step ids.");
       const { path } = args;
@@ -147,7 +147,7 @@ ${results}
   );
 
   const verifyDiff = vscode.commands.registerCommand(
-    "mock-publicering.verifyDiff",
+    "izdatelstvo-izdevatelstvo.verifyDiff",
     async (args) => {
       vscode.window.showInformationMessage("Verifying diff.");
       const currentDocument =
@@ -179,8 +179,8 @@ ${results}
   };
 
   client = new LanguageClient(
-    "languageServerExample",
-    "Language Server Example",
+    "izdatelstvoIzdevatelstvoServer",
+    "Izdatelstvo Izdevatelstvo",
     serverOptions,
     clientOptions
   );

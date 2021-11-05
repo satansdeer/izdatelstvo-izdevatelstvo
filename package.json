@@ -22,15 +22,15 @@
   "contributes": {
     "commands": [
       {
-        "command": "mock-publicering.incrementStepIds",
+        "command": "izdatelstvo-izdevatelstvo.incrementStepIds",
         "title": "Increment step ids"
       },
       {
-        "command": "mock-publicering.decrementStepIds",
+        "command": "izdatelstvo-izdevatelstvo.decrementStepIds",
         "title": "Decrement step ids"
       },
       {
-        "command": "mock-publicering.verifyDiff",
+        "command": "izdatelstvo-izdevatelstvo.verifyDiff",
         "title": "Verify that all changes are mentioned"
       }
     ],
@@ -38,12 +38,12 @@
       "explorer/context": [
         {
           "when": "explorerResourceIsFolder",
-          "command": "mock-publicering.incrementStepIds",
+          "command": "izdatelstvo-izdevatelstvo.incrementStepIds",
           "group": "mockPublicering"
         },
         {
           "when": "explorerResourceIsFolder",
-          "command": "mock-publicering.decrementStepIds",
+          "command": "izdatelstvo-izdevatelstvo.decrementStepIds",
           "group": "mockPublicering"
         }
       ]
@@ -52,23 +52,6 @@
       "type": "object",
       "title": "Example configuration",
       "properties": {
-        "languageServerExample.maxNumberOfProblems": {
-          "scope": "resource",
-          "type": "number",
-          "default": 100,
-          "description": "Controls the maximum number of problems produced by the server."
-        },
-        "languageServerExample.trace.server": {
-          "scope": "window",
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "description": "Traces the communication between VS Code and the language server."
-        }
       }
     }
   },

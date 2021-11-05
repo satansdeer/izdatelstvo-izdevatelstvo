@@ -1,5 +1,5 @@
 {
-	"name": "mock-publicering-server",
+	"name": "izdatelstvo-izdevatelstvo-server",
 	"description": "Language server for markdown files",
 	"version": "1.0.0",
 	"author": "Maksim Ivanov",
@@ -8,7 +8,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/satansdeer/mock-publicering"
+		"url": "https://github.com/satansdeer/izdatelstvo-izdevatelstvo"
 	},
 	"dependencies": {
 		"vscode-languageserver": "^7.0.0",
