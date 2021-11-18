@@ -48,8 +48,37 @@ const findCq = async (text: string, documentPath: string) => {
     brokenDownMatches?.map(async (codeQueryBlock) => {
       const filePath = codeQueryBlock?.match(/\]\((.*)\)/)?.[1] || "";
       const fullPath = resolve(documentPath, "../", filePath);
+      const cropStartLine = Number(
+        codeQueryBlock?.match(/crop-start-line=([0-9]*)/)?.[1]
+      );
+      const cropEndLine = Number(
+        codeQueryBlock?.match(/crop-end-line=([0-9]*)/)?.[1]
+      );
+      if (cropStartLine && cropEndLine) {
+        const lines = Array.from(
+          { length: cropEndLine - cropStartLine + 1 },
+          (_, i) => i + cropStartLine
+        );
+        return { lines, filePath: fullPath };
+      }
+      if (codeQueryBlock.match(/crop-query=([0-9\-]*)/g)) {
+        const lineRange = codeQueryBlock.split("-").map(Number);
+        const lines = Array.from(
+          { length: lineRange[1] - lineRange[0] + 1 },
+          (_, i) => i + lineRange[0]
+        );
+        return { lines, filePath: fullPath };
+      }
       const codeString = String(await readFileAsync(fullPath, "utf-8"));
       const numberOfLines = codeString.split("\n").length - 1;
+      if (!codeQueryBlock.match(/crop-query=/g)) {
+        const lineRange = [1, numberOfLines];
+        const lines = Array.from(
+          { length: lineRange[1] - lineRange[0] + 1 },
+          (_, i) => i + lineRange[0]
+        );
+        return { lines, filePath: fullPath };
+			}
       const match = codeQueryBlock.match(/(\{.*\})/) || [];
       const extension = filePath.split(".").reverse()[0];
       const command = `cq "${calcCropQuery(
@@ -244,7 +273,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
           if (fileChunks.includes(change.ln)) {
             return undefined;
           }
-          if (change.content === "+") {
+          if (change.content === "+" || change.content === "-") {
             return undefined;
           }
           return change;
